@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>VA公用文</title>
+    <link rel="stylesheet" href="taskpane.css">
+</head>
+<body>
+    <div class="header">
+        <h1>VA公用文</h1>
+        <p>ドキュメント形式を一括変換</p>
+    </div>
+    
+    <div class="content">
+        <button id="markdown-button" class="format-button markdown-btn">
+            <span class="emoji">📝</span>
+            <span class="label">マークダウン</span>
+            <span class="desc">マークダウン形式に変換</span>
+        </button>
+        
+        <button id="neutral-button" class="format-button neutral-btn">
+            <span class="emoji">📋</span>
+            <span class="label">ニュートラル</span>
+            <span class="desc">インデント削除 + 行間詰め</span>
+        </button>
+        
+        <button id="outline-button" class="format-button outline-btn">
+            <span class="emoji">📊</span>
+            <span class="label">アウトライン</span>
+            <span class="desc">インデント付き階層構造</span>
+        </button>
+    </div>
+
+    <div id="status"></div>
+
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script src="taskpane.js"></script>
+</body>
+</html>
