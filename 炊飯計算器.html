@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>炊飯水分量計算機</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href='data:application/json,{"name":"炊飯水分量計算機","short_name":"炊飯計算","start_url":"./suihan.html","display":"standalone","background_color":"#f9fafb","theme_color":"#2563eb","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3067/3067425.png","sizes":"512x512","type":"image/png"}]}'>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 md:p-8">
+    <div class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6">
+        <h1 class="text-2xl font-bold mb-6 text-gray-800 text-center">炊飯・水分量計算</h1>
+
+        <div id="controls" class="space-y-6">
+            <div id="amount-container">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">米の量</label>
+                <div class="flex gap-2 flex-wrap" id="amount-btns"></div>
+                <div id="custom-amount-area" class="hidden mt-3">
+                    <input type="number" id="custom-amount" placeholder="数値を入力" class="w-full p-3 border rounded-lg" oninput="calculate()">
+                    <span class="text-xs text-gray-500">合 または g (自動判別)</span>
+                </div>
+            </div>
+
+            <div id="type-container">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">米の種類</label>
+                <div class="grid grid-cols-2 gap-2" id="type-btns"></div>
+            </div>
+
+            <div id="subtype-container">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">タイプ</label>
+                <div class="flex gap-2" id="subtype-btns"></div>
+            </div>
+
+            <div id="texture-container">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">炊き上がり</label>
+                <div class="flex gap-2" id="texture-btns"></div>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 p-4 rounded-xl mt-8">
+            <div id="result" class="text-center">
+                <p class="text-sm text-gray-600">適正水量</p>
+                <p id="water-output" class="text-3xl font-bold text-blue-800">約 190 ml</p>
+                <p id="soak-output" class="text-sm text-blue-600 mt-2 italic">浸水時間：30〜60分</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const state = { amount: 1, type: '白米', subtype: '普通米', texture: '普通', isCustom: false };
+        const config = {
+            amount: [1, 2, 'その他'],
+            type: ['白米', '玄米', '胚芽米', '無洗米'],
+            subtype: ['普通米', '新米'],
+            texture: ['やわらかめ', '普通', '硬め']
+        };
+
+        function renderButtons() {
+            Object.keys(config).forEach(key => {
+                const container = document.getElementById(`${key}-btns`);
+                if (!container) return;
+                container.innerHTML = '';
+                
+                config[key].forEach(val => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.innerText = val;
+                    
+                    // ハイライト判定ロジック
+                    let isActive = false;
+                    if (key === 'amount') {
+                        isActive = (state.isCustom && val === 'その他') || (!state.isCustom && state.amount == val);
+                    } else {
+                        isActive = (state[key] === val);
+                    }
+
+                    btn.className = `flex-1 py-3 px-2 rounded-lg border transition text-sm font-medium ${isActive ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-700 border-gray-200'}`;
+                    btn.onclick = () => update(key, val);
+                    container.appendChild(btn);
+                });
+            });
+        }
+
+        function update(key, value) {
+            if (key === 'amount') {
+                state.isCustom = (value === 'その他');
+                document.getElementById('custom-amount-area').classList.toggle('hidden', !state.isCustom);
+                if (!state.isCustom) state.amount = value;
+            } else {
+                state[key] = value;
+            }
+            renderButtons();
+            calculate();
+        }
+
+        function calculate() {
+            let amount = state.isCustom ? parseFloat(document.getElementById('custom-amount').value) || 0 : state.amount;
+            const finalAmount = amount > 10 ? amount / 150 : amount;
+            const base = { '白米': 190, '玄米': 300, '胚芽米': 200, '無洗米': 220 };
+            
+            // 例外処理：未選択時
+            if (!base[state.type]) return;
+
+            let ml = base[state.type] * finalAmount;
+            if (state.subtype === '新米') ml *= 0.9;
+            if (state.texture === 'やわらかめ') ml *= 1.1;
+            if (state.texture === '硬め') ml *= 0.9;
+            
+            const soak = { '白米': '30〜60分', '玄米': '6〜12時間', '胚芽米': '1〜2時間', '無洗米': '45〜60分' };
+            document.getElementById('water-output').innerText = amount > 0 ? `約 ${Math.round(ml)} ml` : '-';
+            document.getElementById('soak-output').innerText = amount > 0 ? `浸水時間：${soak[state.type]}` : '';
+        }
+
+        renderButtons();
+        calculate();
+    </script>
+</body>
+</html>
